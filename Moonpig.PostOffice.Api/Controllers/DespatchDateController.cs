@@ -10,26 +10,34 @@
     [Route("api/[controller]")]
     public class DespatchDateController : Controller
     {
-        public DateTime _mlt;
+        DispatchDateCalculator _dispatchCalculator;
+
+        public DespatchDateController(DispatchDateCalculator dispatchCalculator)
+        {
+            _dispatchCalculator = dispatchCalculator;
+        }
 
         [HttpGet]
-        public DespatchDate Get(List<int> productIds, DateTime orderDate)
+        public IActionResult Get(List<int> productIds, DateTime orderDate)
         {
-            _mlt = orderDate; // max lead time
-            foreach (var ID in productIds)
+            try
             {
-                DbContext dbContext = new DbContext();
-                var s = dbContext.Products.Single(x => x.ProductId == ID).SupplierId;
-                var lt = dbContext.Suppliers.Single(x => x.SupplierId == s).LeadTime;
-                if (orderDate.AddDays(lt) > _mlt)
-                    _mlt = orderDate.AddDays(lt);
+                DateTime maxLeadTime = _dispatchCalculator.CalculateDispatchDate(productIds, orderDate);
+
+                if (maxLeadTime == DateTime.MinValue)
+                    return BadRequest("Invalid input or unable to calculate max lead time.");
+
+                return Ok(new DespatchDate { Date = maxLeadTime });
             }
-            if (_mlt.DayOfWeek == DayOfWeek.Saturday)
+            catch (InvalidOperationException ex)
             {
-                return new DespatchDate { Date = _mlt.AddDays(2) };
+                return BadRequest($"Invalid operation: {ex.Message}");
             }
-            else if (_mlt.DayOfWeek == DayOfWeek.Sunday) return new DespatchDate { Date = _mlt.AddDays(1) };
-            else return new DespatchDate { Date = _mlt };
+            catch (Exception ex)
+            {
+                return BadRequest($"Specific exception: {ex.Message}");
+            }
         }
+
     }
 }

@@ -99,10 +99,29 @@ document.
 
 Q1. What 'code smells' / anti-patterns did you find in the existing 
 	implementation of part 1 & 2?
+    Creating a new DbContext instance inside a loop can lead to performance issues and potential resource leaks. Creating and using a single DbContext instance throughout the method is better.
+    There is no error handling for database queries. A product or supplier will throw an exception if it is not found. It's better to handle these scenarios gracefully.
+    The values like 2 and 1 in AddDays are magic numbers. Using named constants or variables is better to make the code more readable and maintainable.
+    The method does multiple things (retrieve data from the database, calculate lead time, and determine dispatch date). It's better to break it down into smaller, more focused methods.
+    Using a global variable _mlt makes the method less readable and harder to understand. Consider passing it as a parameter or using it as a return value.
+    Comparing DateTime objects using == might not be accurate due to potential differences in milliseconds. It's better to use methods like DateTime.Equals or compare ticks.
 
 Q2. What best practices have you used while implementing your solution?
+    Used dependency injection to inject the DbContext into the DispatchDateCalculator class, improving testability and flexibility.
+    I separated the logic for calculating the dispatch date and adjusting for weekends into distinct methods within the DispatchDateCalculator class, adhering to the Single Responsibility Principle.
+    Followed consistent naming conventions for variables and methods, enhancing code readability, communicating their purpose, and making the code more readable and self-explanatory.
+    Implemented guard clauses to check for null values and handle exceptional cases early, improving code robustness.
+    Followed consistent naming conventions for variables and methods, enhancing code readability.
+    Added comments where necessary to explain complex logic or provide additional context.
 
 Q3. What further steps would you take to improve the solution given more time?
+    Develop comprehensive unit tests to validate the behaviour of the LeadTimeCalculator class under various scenarios.
+    Introduce logging to capture relevant information, such as exceptions or significant events, for monitoring and debugging purposes.
+    Enhance error handling by providing meaningful error messages and introducing custom exception types for better diagnostics.
+    Externalize configuration settings, such as weekend days or constants, to make the solution more configurable without code modification.
+    Consider abstracting the database access further by introducing a repository or service layer to encapsulate data access logic.
+    Conduct integration testing to ensure the correct interaction between the solution components, such as the database and the application logic.
+    Optimize the performance of database queries and algorithms, especially if dealing with large datasets.
 
 Q4. What's a technology that you're excited about and where do you see this 
     being applicable? (Your answer does not have to be related to this problem)
