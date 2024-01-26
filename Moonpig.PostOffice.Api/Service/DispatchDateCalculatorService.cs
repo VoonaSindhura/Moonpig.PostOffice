@@ -1,17 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Moonpig.PostOffice.Api.Repository;
+using Moonpig.PostOffice.Api.Service;
 using Moonpig.PostOffice.Data;
 
 namespace Moonpig.PostOffice.Api
 {
-    public class DispatchDateCalculator
+    public class DispatchDateCalculatorService: IDispatchDateCalculatorService
     {
-        private readonly DbContext _dbContext;
+        //private readonly DbContext _dbContext;
 
-        public DispatchDateCalculator(DbContext dbContext)
+        IProductService _productService;
+        ISupplierService _supplierService;
+
+        public DispatchDateCalculatorService(IProductService productService, ISupplierService supplierService)
         {
-            _dbContext = dbContext;
+            _productService = productService;
+            _supplierService = supplierService;
         }
 
         public DateTime CalculateDispatchDate(List<int> productIds, DateTime orderDate)
@@ -20,11 +26,11 @@ namespace Moonpig.PostOffice.Api
 
             foreach (var productId in productIds)
             {
-                var product = _dbContext.Products.SingleOrDefault(x => x.ProductId == productId);
+                var product = _productService.GetProduct(productId);
 
                 if (product != null)
                 {
-                    var supplier = _dbContext.Suppliers.SingleOrDefault(x => x.SupplierId == product.SupplierId);
+                    var supplier = _supplierService.GetSupplier(product.SupplierId);
 
                     if (supplier != null)
                     {

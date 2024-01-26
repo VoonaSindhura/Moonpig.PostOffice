@@ -5,6 +5,8 @@
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
+    using Moonpig.PostOffice.Api.Repository;
+    using Moonpig.PostOffice.Api.Service;
     using Moonpig.PostOffice.Data;
 
     public class Startup
@@ -20,8 +22,12 @@
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
-            services.AddScoped<DbContext>();
-            services.AddScoped<DispatchDateCalculator>();
+            services.AddTransient<IDbContext, DbContext>();
+            services.AddTransient<IDispatchDateCalculatorService, DispatchDateCalculatorService>();
+            services.AddTransient<IProductService, ProductService>();
+            services.AddTransient<ISupplierService, SupplierService>();
+            services.AddTransient<IProductRepository, ProductRepository>();
+            services.AddTransient<ISupplierRepository, SupplierRepository>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
