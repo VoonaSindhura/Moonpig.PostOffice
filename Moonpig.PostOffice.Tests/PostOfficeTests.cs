@@ -6,101 +6,152 @@
     using Microsoft.AspNetCore.Mvc;
     using Moonpig.PostOffice.Api;
     using Moonpig.PostOffice.Api.Model;
+    using Moonpig.PostOffice.Api.Repository;
+    using Moonpig.PostOffice.Api.Service;
     using Moonpig.PostOffice.Data;
     using Shouldly;
     using Xunit;
 
     public class PostOfficeTests
     {
-        DbContext mockDbContext = new DbContext();
+        IDbContext _dbContext;
+        IProductRepository _productRepository;
+        ISupplierRepository _supplierRepository;
+        DispatchDateCalculatorService _dispatchCalculator;
+        DespatchDateController _controller;
+        ProductService _productService;
+        SupplierService _supplierService;
+        public PostOfficeTests()
+        {
+            _dbContext = new DbContext();
+            _productRepository = new ProductRepository(_dbContext);
+            _supplierRepository = new SupplierRepository(_dbContext);
+            _supplierService = new SupplierService(_supplierRepository);
+            _productService = new ProductService(_productRepository);
+            _dispatchCalculator = new DispatchDateCalculatorService(_productService, _supplierService);
+            _controller = new DespatchDateController(_dispatchCalculator);
+        }
 
         [Fact]
         public void OneProductWithLeadTimeOfOneDay()
         {
-            DispatchDateCalculator dispatchCalculator = new DispatchDateCalculator(mockDbContext);
-            DespatchDateController controller = new DespatchDateController(dispatchCalculator);
-            IActionResult actionResult = controller.Get(new List<int>() { 1 }, DateTime.Now);
+            // Arrange 
+            var orderdDate = new DateTime(2024, 1, 23);
+            var expectedDate = orderdDate.AddDays(1);
+            var products = new List<int>() { 1 };
+
+            //Action 
+            IActionResult actionResult = _controller.Get(products, orderdDate);
             OkObjectResult objectResult = Assert.IsType<OkObjectResult>(actionResult);
-            DespatchDate date = Assert.IsType<DespatchDate>(objectResult.Value);
-            date.Date.Date.ShouldBe(DateTime.Now.Date.AddDays(1));
+            //Assert
+            DespatchDate result = Assert.IsType<DespatchDate>(objectResult.Value);
+            result.Date.Date.ShouldBe(expectedDate);
         }
 
 
         [Fact]
         public void OneProductWithLeadTimeOfTwoDay()
         {
-            DispatchDateCalculator dispatchCalculator = new DispatchDateCalculator(mockDbContext);
-            DespatchDateController controller = new DespatchDateController(dispatchCalculator);
-            IActionResult actionResult = controller.Get(new List<int>() { 2 }, DateTime.Now);
+            // Arrange 
+            var orderdDate = new DateTime(2024, 1, 23);
+            var expectedDate = orderdDate.AddDays(2);
+            var products = new List<int>() { 2 };
+            //Action 
+            IActionResult actionResult = _controller.Get(products, orderdDate);
             OkObjectResult objectResult = Assert.IsType<OkObjectResult>(actionResult);
-            DespatchDate date = Assert.IsType<DespatchDate>(objectResult.Value);
-            date.Date.Date.ShouldBe(DateTime.Now.Date.AddDays(2));
+            //Assert
+            DespatchDate result = Assert.IsType<DespatchDate>(objectResult.Value);
+            result.Date.Date.ShouldBe(expectedDate);
         }
 
         [Fact]
-        public void OneProductWithLeadTimeOfThreeDay()
+        public void oneproductwithleadtimeofthreeday()
         {
-            DispatchDateCalculator dispatchCalculator = new DispatchDateCalculator(mockDbContext);
-            DespatchDateController controller = new DespatchDateController(dispatchCalculator);
-            IActionResult actionResult = controller.Get(new List<int>() { 3 }, DateTime.Now);
+            // Arrange 
+            var orderdDate = new DateTime(2024, 1, 23);
+            var expectedDate = orderdDate.AddDays(3);
+            var products = new List<int>() { 3 };
+            //Action 
+            IActionResult actionResult = _controller.Get(products, orderdDate);
             OkObjectResult objectResult = Assert.IsType<OkObjectResult>(actionResult);
-            DespatchDate date = Assert.IsType<DespatchDate>(objectResult.Value);
-            date.Date.Date.ShouldBe(DateTime.Now.Date.AddDays(3));
+            //Assert
+            DespatchDate result = Assert.IsType<DespatchDate>(objectResult.Value);
+            result.Date.Date.ShouldBe(expectedDate);
         }
 
         [Fact]
-        public void SaturdayHasExtraTwoDays()
+        public void saturdayhasextratwodays()
         {
-            DispatchDateCalculator dispatchCalculator = new DispatchDateCalculator(mockDbContext);
-            DespatchDateController controller = new DespatchDateController(dispatchCalculator);
-            IActionResult actionResult = controller.Get(new List<int>() { 1 }, new DateTime(2018, 1, 26));
+            // Arrange 
+            var orderdDate = new DateTime(2018, 1, 26);
+            var expectedDate = orderdDate.AddDays(3);
+            var products = new List<int>() { 1 };
+            //Action 
+            IActionResult actionResult = _controller.Get(products, orderdDate);
             OkObjectResult objectResult = Assert.IsType<OkObjectResult>(actionResult);
-            DespatchDate date = Assert.IsType<DespatchDate>(objectResult.Value);
-            date.Date.ShouldBe(new DateTime(2018, 1, 26).Date.AddDays(3));
+            //Assert
+            DespatchDate result = Assert.IsType<DespatchDate>(objectResult.Value);
+            result.Date.Date.ShouldBe(expectedDate);
         }
 
         [Fact]
-        public void SundayHasExtraDay()
+        public void sundayhasextraday()
         {
-            DispatchDateCalculator dispatchCalculator = new DispatchDateCalculator(mockDbContext);
-            DespatchDateController controller = new DespatchDateController(dispatchCalculator);
-            IActionResult actionResult = controller.Get(new List<int>() { 3 }, new DateTime(2018, 1, 25));
+            // Arrange 
+            var orderdDate = new DateTime(2018, 1, 25);
+            var expectedDate = orderdDate.AddDays(5);
+            var products = new List<int>() { 3 };
+            //Action 
+            IActionResult actionResult = _controller.Get(products, orderdDate);
             OkObjectResult objectResult = Assert.IsType<OkObjectResult>(actionResult);
-            DespatchDate date = Assert.IsType<DespatchDate>(objectResult.Value);
-            date.Date.ShouldBe(new DateTime(2018, 1, 25).Date.AddDays(5));
+            //Assert
+            DespatchDate result = Assert.IsType<DespatchDate>(objectResult.Value);
+            result.Date.Date.ShouldBe(expectedDate);
         }
 
         [Fact]
-        public void OneProductWithLeadTimeOfSixDays()
+        public void oneproductwithleadtimeofsixdays()
         {
-            DispatchDateCalculator dispatchCalculator = new DispatchDateCalculator(mockDbContext);
-            DespatchDateController controller = new DespatchDateController(dispatchCalculator);
-            IActionResult actionResult = controller.Get(new List<int>() { 9 }, new DateTime(2018, 1, 15));
+            // Arrange 
+            var orderdDate = new DateTime(2018, 1, 15);
+            var expectedDate = orderdDate.AddDays(8);
+            var products = new List<int>() { 9 };
+            //Action 
+            IActionResult actionResult = _controller.Get(products, orderdDate);
             OkObjectResult objectResult = Assert.IsType<OkObjectResult>(actionResult);
-            DespatchDate date = Assert.IsType<DespatchDate>(objectResult.Value);
-            date.Date.ShouldBe(new DateTime(2018, 1, 15).Date.AddDays(8));
+            //Assert
+            DespatchDate result = Assert.IsType<DespatchDate>(objectResult.Value);
+            result.Date.Date.ShouldBe(expectedDate);
         }
 
         [Fact]
-        public void OneProductWithLeadTimeOfThirteenDays()
+        public void oneproductwithleadtimeofthirteendays()
         {
-            DispatchDateCalculator dispatchCalculator = new DispatchDateCalculator(mockDbContext);
-            DespatchDateController controller = new DespatchDateController(dispatchCalculator);
-            IActionResult actionResult = controller.Get(new List<int>() { 10 }, new DateTime(2018, 1, 15));
+            // Arrange 
+            var orderdDate = new DateTime(2018, 1, 15);
+            var expectedDate = orderdDate.AddDays(17);
+            var products = new List<int>() { 10 };
+            //Action 
+            IActionResult actionResult = _controller.Get(products, orderdDate);
             OkObjectResult objectResult = Assert.IsType<OkObjectResult>(actionResult);
-            DespatchDate date = Assert.IsType<DespatchDate>(objectResult.Value);
-            date.Date.ShouldBe(new DateTime(2018, 1, 15).Date.AddDays(17));
+            //Assert
+            DespatchDate result = Assert.IsType<DespatchDate>(objectResult.Value);
+            result.Date.Date.ShouldBe(expectedDate);
         }
 
         [Fact]
-        public void TwoProductsWithLeadTimeOfOneDayAndTwoDay()
+        public void twoproductswithleadtimeofonedayandtwoday()
         {
-            DispatchDateCalculator dispatchCalculator = new DispatchDateCalculator(mockDbContext);
-            DespatchDateController controller = new DespatchDateController(dispatchCalculator);
-            IActionResult actionResult = controller.Get(new List<int>() { 1, 2 }, new DateTime(2018, 1, 1));
+            // Arrange 
+            var orderdDate = new DateTime(2018, 1, 1);
+            var expectedDate = orderdDate.AddDays(2);
+            var products = new List<int>() { 1, 2 };
+            //Action 
+            IActionResult actionResult = _controller.Get(products, orderdDate);
             OkObjectResult objectResult = Assert.IsType<OkObjectResult>(actionResult);
-            DespatchDate date = Assert.IsType<DespatchDate>(objectResult.Value);
-            date.Date.ShouldBe(new DateTime(2018, 1, 1).Date.AddDays(2));
+            //Assert
+            DespatchDate result = Assert.IsType<DespatchDate>(objectResult.Value);
+            result.Date.Date.ShouldBe(expectedDate);
         }
 
     }

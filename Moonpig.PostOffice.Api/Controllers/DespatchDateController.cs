@@ -6,13 +6,14 @@
     using Data;
     using Microsoft.AspNetCore.Mvc;
     using Model;
+    using Moonpig.PostOffice.Api.Service;
 
     [Route("api/[controller]")]
     public class DespatchDateController : Controller
     {
-        DispatchDateCalculator _dispatchCalculator;
+        IDispatchDateCalculatorService _dispatchCalculator;
 
-        public DespatchDateController(DispatchDateCalculator dispatchCalculator)
+        public DespatchDateController(IDispatchDateCalculatorService dispatchCalculator)
         {
             _dispatchCalculator = dispatchCalculator;
         }
